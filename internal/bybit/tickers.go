@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 type GetTickersProps struct {
@@ -22,11 +23,11 @@ type GetTickersResult struct {
 }
 
 type GetTickersResultResult struct {
-	Category string                             `json:"category"`
-	List     []GetTickersResultResultInstrument `json:"list"`
+	Category string                         `json:"category"`
+	List     []GetTickersResultResultTicker `json:"list"`
 }
 
-type GetTickersResultResultInstrument struct {
+type GetTickersResultResultTicker struct {
 	Symbol          string  `json:"symbol"`
 	Bid1Price       string  `json:"bid1Price"`
 	Bid1Size        string  `json:"bid1Size"`
@@ -52,8 +53,34 @@ type GetTickersResultResultInstrument struct {
 	Vega            *string `json:"vega,omitempty"`
 }
 
+func buildQuery(props *GetTickersProps) string {
+	parts := []string{}
+
+	if props.Category != "" {
+		parts = append(parts, fmt.Sprintf("category=%s", props.Category))
+	}
+	if props.Symbol != "" {
+		parts = append(parts, fmt.Sprintf("symbol=%s", props.Symbol))
+	}
+	if props.BaseCoin != "" {
+		parts = append(parts, fmt.Sprintf("baseCoin=%s", props.BaseCoin))
+	}
+	if props.ExpDate != "" {
+		parts = append(parts, fmt.Sprintf("expDate=%s", props.ExpDate))
+	}
+
+	query := strings.Join(parts, "&")
+
+	if query == "" {
+		return ""
+	}
+
+	return "?" + query
+}
+
 func (c *Client) GetTickers(props *GetTickersProps) (*GetTickersResult, error) {
-	url := fmt.Sprintf("%s/v5/market/tickers?category=%s&symbol=%s", c.baseURL, props.Category, props.Symbol)
+	path := buildQuery(props)
+	url := fmt.Sprintf("%s/v5/market/tickers%s", c.baseURL, path)
 
 	response, err := http.Get(url)
 	if err != nil {
