@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log/slog"
 	"os"
 
@@ -12,7 +13,10 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
 	bybitClient := bybit.NewClient("https://api.bybit.com")
 
-	svc := app.NewService(logger, bybitClient)
+	riskFreeRate := flag.Float64("riskFreeRate", 5.0, "risk free rate")
+	flag.Parse()
+
+	svc := app.NewService(logger, bybitClient, *riskFreeRate)
 
 	err := svc.Run()
 	if err != nil {

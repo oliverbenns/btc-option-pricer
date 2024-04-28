@@ -1,26 +1,28 @@
 package app
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/oliverbenns/btc-option-pricer/internal/blackscholes"
 	"github.com/oliverbenns/btc-option-pricer/internal/bybit"
+	"github.com/oliverbenns/btc-option-pricer/internal/utils"
 )
 
 type Service struct {
-	logger      *slog.Logger
-	bybitClient *bybit.Client
+	logger       *slog.Logger
+	bybitClient  *bybit.Client
+	riskFreeRate float64
 }
 
-func NewService(logger *slog.Logger, bybitClient *bybit.Client) *Service {
+func NewService(logger *slog.Logger, bybitClient *bybit.Client, riskFreeRate float64) *Service {
 	return &Service{
-		logger:      logger,
-		bybitClient: bybitClient,
+		logger:       logger,
+		bybitClient:  bybitClient,
+		riskFreeRate: riskFreeRate,
 	}
 }
 
@@ -32,60 +34,28 @@ func (s *Service) Run() error {
 		return fmt.Errorf("failed to get tickers: %w", err)
 	}
 
-	//s.logger.Info("Got tickers", "tickers", tickers)
+	s.logger.Info("Got tickers", "tickers", tickers)
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Symbol"})
+	table.SetHeader([]string{"Symbol", "Value"})
 
 	for _, ticker := range tickers {
-		row := []string{ticker.Symbol}
+
+		now := time.Now()
+		diff := ticker.ExpiryDate.Sub(now)
+
+		value := blackscholes.Calculate(&blackscholes.CalculateProps{
+			StrikePrice:     ticker.StrikePrice,
+			UnderlyingPrice: ticker.UnderlyingPrice,
+			TimeToExp:       utils.GetYearsFromDuration(diff),
+			RiskFreeRate:    s.riskFreeRate,
+			Volatility:      0, //todo
+		})
+		row := []string{ticker.Symbol, fmt.Sprintf("%.2f", value)}
 		table.Append(row)
 	}
 
 	table.Render()
 
 	return nil
-}
-
-func (s *Service) getTickers() ([]bybit.GetTickersResultResultTicker, error) {
-	res, err := s.bybitClient.GetTickers(&bybit.GetTickersProps{
-		Category: "option",
-		BaseCoin: "BTC",
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	from := time.Now()
-	to := from.AddDate(0, 0, 30)
-
-	filtered, err := filterByPeriod(res.Result.List, from, to)
-	if err != nil {
-		return nil, fmt.Errorf("failed to filter by period: %w", err)
-	}
-
-	return filtered, nil
-}
-
-func filterByPeriod(tickers []bybit.GetTickersResultResultTicker, from, to time.Time) ([]bybit.GetTickersResultResultTicker, error) {
-	filtered := []bybit.GetTickersResultResultTicker{}
-	for _, ticker := range tickers {
-		symbolParts := strings.Split(ticker.Symbol, "-")
-		if len(symbolParts) < 2 {
-			return nil, errors.New("invalid symbol")
-		}
-
-		rawDate := symbolParts[1]
-
-		date, err := time.Parse("2Jan06", rawDate)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse symbol date: %w", err)
-		}
-
-		if (date.Equal(from) || date.After(from)) && date.Before(to) {
-			filtered = append(filtered, ticker)
-		}
-	}
-
-	return filtered, nil
 }
