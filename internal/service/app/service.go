@@ -37,7 +37,7 @@ func (s *Service) Run() error {
 	s.logger.Info("Got tickers", "tickers", tickers)
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Symbol", "Value"})
+	table.SetHeader([]string{"Symbol", "Best Ask", "Best Bid", "Black Scholes"})
 
 	for _, ticker := range tickers {
 
@@ -51,7 +51,12 @@ func (s *Service) Run() error {
 			RiskFreeRate:    s.riskFreeRate,
 			Volatility:      0, //todo
 		})
-		row := []string{ticker.Symbol, fmt.Sprintf("%.2f", value)}
+		row := []string{
+			ticker.Symbol,
+			fmt.Sprintf("%.2f", ticker.BestAskPrice),
+			fmt.Sprintf("%.2f", ticker.BestBidPrice),
+			fmt.Sprintf("%.2f", value),
+		}
 		table.Append(row)
 	}
 

@@ -16,6 +16,8 @@ type Ticker struct {
 	StrikePrice     float64
 	UnderlyingPrice float64
 	Kind            string
+	BestBidPrice    float64
+	BestAskPrice    float64
 }
 
 func (s *Service) getTickers() ([]Ticker, error) {
@@ -83,12 +85,24 @@ func parseTicker(ticker bybit.GetTickersResultResultTicker) (*Ticker, error) {
 		return nil, fmt.Errorf("failed to parse underlying price: %w", err)
 	}
 
+	bestAsk, err := strconv.ParseFloat(ticker.Ask1Price, 64)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse ask price: %w", err)
+	}
+
+	bestBid, err := strconv.ParseFloat(ticker.Bid1Price, 64)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse bid price: %w", err)
+	}
+
 	return &Ticker{
 		Symbol:          ticker.Symbol,
 		ExpiryDate:      details.expiryDate,
 		StrikePrice:     details.strikePrice,
 		UnderlyingPrice: underlyingPrice,
 		Kind:            details.kind,
+		BestAskPrice:    bestAsk,
+		BestBidPrice:    bestBid,
 	}, nil
 }
 
