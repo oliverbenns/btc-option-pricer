@@ -18,6 +18,7 @@ type Ticker struct {
 	Kind            string
 	BestBidPrice    float64
 	BestAskPrice    float64
+	BaseCoin        string
 }
 
 func (s *Service) getTickers() ([]Ticker, error) {
@@ -67,13 +68,6 @@ func filterByPeriod(tickers []bybit.GetTickersResultResultTicker, from, to time.
 	return filtered, nil
 }
 
-type symbolDetails struct {
-	baseCoin    string
-	expiryDate  time.Time
-	strikePrice float64
-	kind        string // C(all) / P(ut)
-}
-
 func parseTicker(ticker bybit.GetTickersResultResultTicker) (*Ticker, error) {
 	details, err := parseSymbol(ticker.Symbol)
 	if err != nil {
@@ -103,7 +97,15 @@ func parseTicker(ticker bybit.GetTickersResultResultTicker) (*Ticker, error) {
 		Kind:            details.kind,
 		BestAskPrice:    bestAsk,
 		BestBidPrice:    bestBid,
+		BaseCoin:        details.baseCoin,
 	}, nil
+}
+
+type symbolDetails struct {
+	baseCoin    string
+	expiryDate  time.Time
+	strikePrice float64
+	kind        string // C(all) / P(ut)
 }
 
 // BTC-28APR24-67000-P

@@ -53,7 +53,25 @@ type GetTickersResultResultTicker struct {
 	Vega            *string `json:"vega,omitempty"`
 }
 
-func buildQuery(props *GetTickersProps) string {
+func (c *Client) GetTickers(props *GetTickersProps) (*GetTickersResult, error) {
+	path := buildTickerQuery(props)
+	url := fmt.Sprintf("%s/v5/market/tickers%s", c.baseURL, path)
+
+	response, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	var resp GetTickersResult
+	if err := json.NewDecoder(response.Body).Decode(&resp); err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
+func buildTickerQuery(props *GetTickersProps) string {
 	parts := []string{}
 
 	if props.Category != "" {
@@ -76,22 +94,4 @@ func buildQuery(props *GetTickersProps) string {
 	}
 
 	return "?" + query
-}
-
-func (c *Client) GetTickers(props *GetTickersProps) (*GetTickersResult, error) {
-	path := buildQuery(props)
-	url := fmt.Sprintf("%s/v5/market/tickers%s", c.baseURL, path)
-
-	response, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	var priceResp GetTickersResult
-	if err := json.NewDecoder(response.Body).Decode(&priceResp); err != nil {
-		return nil, err
-	}
-
-	return &priceResp, nil
 }
