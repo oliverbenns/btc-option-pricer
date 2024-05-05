@@ -2,11 +2,13 @@ package stats
 
 import "math"
 
+// StdDev calculates the population standard deviation.
 func StdDev(data []float64) float64 {
 	v := variance(data)
 	return math.Sqrt(v)
 }
 
+// variance calculates the population variance.
 func variance(data []float64) float64 {
 	if (len(data)) == 0 {
 		return 0
