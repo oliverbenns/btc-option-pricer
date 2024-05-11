@@ -48,13 +48,21 @@ func (s *Service) Run() error {
 			return fmt.Errorf("failed to get historical volatility: %w", err)
 		}
 
-		value := blackscholes.Calculate(&blackscholes.CalculateProps{
+		calcProps := &blackscholes.CalculateProps{
 			StrikePrice:     ticker.StrikePrice,
 			UnderlyingPrice: ticker.UnderlyingPrice,
 			TimeToExp:       utils.GetYearsFromDuration(diff),
 			RiskFreeRate:    s.riskFreeRate,
 			Volatility:      volatility,
-		})
+		}
+
+		value := 0.0
+		if ticker.Kind == "C" {
+			value = blackscholes.CalculateCall(calcProps)
+		} else {
+			value = blackscholes.CalculatePut(calcProps)
+		}
+
 		row := []string{
 			ticker.Symbol,
 			fmt.Sprintf("%.2f", ticker.BestAskPrice),

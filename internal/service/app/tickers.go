@@ -15,7 +15,7 @@ type Ticker struct {
 	ExpiryDate      time.Time
 	StrikePrice     float64
 	UnderlyingPrice float64
-	Kind            string
+	Kind            string // C(all) / P(ut)
 	BestBidPrice    float64
 	BestAskPrice    float64
 	BaseCoin        string
