@@ -10,10 +10,10 @@ To run:
 
 ```
 cd cmd/app
-go run . -riskFreeRate=4.0
+go run . -riskFreeRate=0.04
 ```
 
-The `riskFreeRate` parameter is an optional floating point type input. This can be set to a fixed rate investment you have access to, such as your bank's interest rate. When not provided, it defaults to 5.0, the Bank of England rate @ 2nd August 2023.
+The `riskFreeRate` parameter is an optional floating point type input. This can be set to a fixed rate investment you have access to, such as your bank's interest rate. When not provided, it defaults to 0.05 the Bank of England rate @ 2nd August 2023.
 
 ## Disclaimer
 
