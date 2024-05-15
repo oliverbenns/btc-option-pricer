@@ -29,15 +29,13 @@ func NewService(logger *slog.Logger, bybitClient *bybit.Client, riskFreeRate flo
 }
 
 func (s *Service) Run() error {
-	s.logger.Info("Service running")
-
 	tickers, err := s.getTickers()
 	if err != nil {
 		return fmt.Errorf("failed to get tickers: %w", err)
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Symbol", "Best Ask", "Best Bid", "Volatility", "Black Scholes"})
+	table.SetHeader([]string{"Symbol", "Strike", "Underlying", "Best Ask", "Best Bid", "Black Scholes"})
 
 	for _, ticker := range tickers {
 		now := time.Now()
@@ -65,9 +63,10 @@ func (s *Service) Run() error {
 
 		row := []string{
 			ticker.Symbol,
+			fmt.Sprintf("%.2f", ticker.StrikePrice),
+			fmt.Sprintf("%.2f", ticker.UnderlyingPrice),
 			fmt.Sprintf("%.2f", ticker.BestAskPrice),
 			fmt.Sprintf("%.2f", ticker.BestBidPrice),
-			fmt.Sprintf("%.2f", volatility),
 			fmt.Sprintf("%.2f", value),
 		}
 		table.Append(row)

@@ -10,7 +10,7 @@ func StdDev(data []float64) float64 {
 
 // variance calculates the population variance.
 func variance(data []float64) float64 {
-	if (len(data)) == 0 {
+	if len(data) == 0 {
 		return 0
 	}
 

@@ -1,6 +1,8 @@
 package blackscholes
 
-import "math"
+import (
+	"math"
+)
 
 type CalculateProps struct {
 	StrikePrice     float64
@@ -18,8 +20,10 @@ func CalculateCall(props *CalculateProps) float64 {
 }
 
 func CalculatePut(props *CalculateProps) float64 {
-	// @TODO
-	return 0
+	a := props.StrikePrice * math.Exp(-props.RiskFreeRate*props.TimeToExp) * normDist(-d2(props))
+	b := props.UnderlyingPrice * normDist(-d1(props))
+
+	return a - b
 }
 
 func d1(props *CalculateProps) float64 {
@@ -31,7 +35,9 @@ func d1(props *CalculateProps) float64 {
 }
 
 func d2(props *CalculateProps) float64 {
-	return d1(props) - props.Volatility*math.Sqrt(props.TimeToExp)
+	a := d1(props)
+	b := props.Volatility * math.Sqrt(props.TimeToExp)
+	return a - b
 }
 
 func normDist(x float64) float64 {

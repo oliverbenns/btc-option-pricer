@@ -3,6 +3,7 @@ package app
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -47,6 +48,8 @@ func (s *Service) getTickers() ([]Ticker, error) {
 
 		parsed[i] = *parsedTicker
 	}
+
+	sortTickers(parsed)
 
 	return parsed, nil
 }
@@ -99,6 +102,33 @@ func parseTicker(ticker bybit.GetTickersResultResultTicker) (*Ticker, error) {
 		BestBidPrice:    bestBid,
 		BaseCoin:        details.baseCoin,
 	}, nil
+}
+
+type ByExpiryDateStrikePriceKind []Ticker
+
+func (a ByExpiryDateStrikePriceKind) Len() int      { return len(a) }
+func (a ByExpiryDateStrikePriceKind) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByExpiryDateStrikePriceKind) Less(i, j int) bool {
+	if a[i].ExpiryDate.Equal(a[j].ExpiryDate) {
+		if a[i].StrikePrice == a[j].StrikePrice {
+			return a[i].Kind < a[j].Kind
+		}
+		return a[i].StrikePrice < a[j].StrikePrice
+	}
+	return a[i].ExpiryDate.Before(a[j].ExpiryDate)
+}
+
+// mutates
+func sortTickers(tickers []Ticker) {
+	sort.Slice(tickers, func(i, j int) bool {
+		if tickers[i].ExpiryDate.Equal(tickers[j].ExpiryDate) {
+			if tickers[i].StrikePrice == tickers[j].StrikePrice {
+				return tickers[i].Kind < tickers[j].Kind
+			}
+			return tickers[i].StrikePrice < tickers[j].StrikePrice
+		}
+		return tickers[i].ExpiryDate.Before(tickers[j].ExpiryDate)
+	})
 }
 
 type symbolDetails struct {
