@@ -15,10 +15,6 @@ go run . -riskFreeRate=0.04
 
 The `riskFreeRate` parameter is an optional floating point type input. This can be set to a fixed rate investment you have access to, such as your bank's interest rate. When not provided, it defaults to 0.05, the Bank of England rate @ 2nd August 2023.
 
-## Disclaimer
-
-This software is for educational purposes only and should not be used for trading purposes. All financial decisions are solely your responsibility.
-
 ## Example Output
 
 Below is a sample of the table that is output @ 15th May 2024.
@@ -41,3 +37,7 @@ Below is a sample of the table that is output @ 15th May 2024.
 | BTC-18MAY24-64500-P  |  64500.00 |   66202.26 |   565.00 |   530.00 |        497.18 |
 +----------------------+-----------+------------+----------+----------+---------------+
 ```
+
+## Disclaimer
+
+This software is for educational purposes only and should not be used for trading purposes. All financial decisions are solely your responsibility.
